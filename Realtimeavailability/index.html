@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Availability Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        #availability {
+            margin: 20px 0;
+            font-size: 1.5em;
+            color: #555;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #notification {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Availability Check</h1>
+    <div id="availability">Checking...</div>
+    <button id="checkAvailability">Check Availability</button>
+    <div id="notification"></div>
+    <script>
+        const socket = new WebSocket('ws://localhost:3000');
+
+        socket.addEventListener('open', () => {
+            console.log('WebSocket connection opened');
+        });
+
+        socket.addEventListener('message', (event) => {
+            document.getElementById('availability').innerText = event.data;
+            showNotification('Availability updated');
+        });
+
+        document.getElementById('checkAvailability').addEventListener('click', () => {
+            sendMessage('Request availability update');
+        });
+
+        function sendMessage(message) {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(message);
+            } else if (socket.readyState === WebSocket.CONNECTING) {
+                setTimeout(() => sendMessage(message), 100);
+            } else {
+                console.error('WebSocket is not open');
+                showNotification('WebSocket is not open. Please try again later.');
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.innerText = message;
+            setTimeout(() => {
+                notification.innerText = '';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
